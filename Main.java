@@ -22,9 +22,9 @@ public class Main{
 	private static String NAME_CURRENT_DIR;
 	
 	public static void main(String[] args){
-		System.out.println("Start.\n Clear logs...");
+		System.out.println("Start.\nClear logs.");
 		String def = Paths.get(System.getProperty("user.dir")).toString();
-		String path = def + "//Files Control//" + DATE + "//";
+		String path = def + "//FilesControl//" + DATE + "//";
 		File preFile = new File(path);
 		preFile.mkdirs();
 		for(File delete : preFile.listFiles()){
@@ -32,12 +32,12 @@ public class Main{
 				delete.delete();
 			}
 		}
-		System.out.println("  Get files...");
+		System.out.println("Get files.");
 		String pathFiles = def;
 		File currentDir = new File(pathFiles);
 		NAME_CURRENT_DIR = currentDir.getName();
+		System.out.println("Read files.");
 		getFiles(new File(pathFiles));
-		System.out.println("   Read files...");
 		for(String key : HASH.keySet()){
 			Collections.sort(HASH.get(key), new Sort());
 			int count = 0;
@@ -54,7 +54,7 @@ public class Main{
 				Double sizeFile = file.length() / 1048576d;
 				BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
 				sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
-				text += sizeFileBig + "Ã¡   " + newPath + "\n";
+				text += sizeFileBig + "–ú–ë   " + newPath + "\n";
 			}
 			Double sizeFile = size / 1048576d;
 			BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
@@ -62,7 +62,7 @@ public class Main{
 			Double sizeAllFile = size / count / 1048576d;
 			BigDecimal sizeAllFileBig = new BigDecimal(sizeAllFile.toString());
 			sizeAllFileBig = sizeAllFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
-			String filePath = preFile + "\\(" + key + ") (" + count + ") (" + sizeFileBig + "Ã¡) (" + sizeAllFileBig + "Ã¡)" + ".txt";
+			String filePath = preFile + "\\(" + key + ") (" + count + ") (" + sizeFileBig + "–ú–ë) (" + sizeAllFileBig + "–ú–ë)" + ".txt";
 			File file = new File(filePath);
 			try{
 				file.createNewFile();
@@ -78,7 +78,7 @@ public class Main{
 			pw.print(text);
 		    pw.close();
 	    }
-		System.out.println("Finish!!!");
+		System.out.println("Finish.");
 		
 	}
 	
@@ -91,17 +91,21 @@ public class Main{
         }
 	}
 	
+	public static int COUNT_FILES = 0;
+	
 	public static void getFiles(File arg_0){
 	    File[] files = arg_0.listFiles();
 	    for (File file : files){
 	        if(file.isDirectory()){
-	        	if(file.getPath().indexOf("Files Control") == -1){
+	        	if(file.getPath().indexOf("FilesControl") == -1){
 	        		getFiles(file);
 	        		continue;
 	        	}
 	        	continue;
 	        }
-	        if(file.getPath().toString().lastIndexOf("Files Control") == -1){
+	        if(file.getPath().toString().lastIndexOf("FilesControl") == -1){
+	        	COUNT_FILES ++;
+	        	if(COUNT_FILES % 100 == 0) System.out.print(".");
 	        	BasicFileAttributes attr = null;
 	        	try{
 					attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
@@ -115,10 +119,10 @@ public class Main{
 		        HASH.get(par_1).add(file);
 		        COUNT++;
 		        if(attr.lastModifiedTime().toString().indexOf(DATE) != -1){
-					if(HASH.get("New files") == null){
-			        	HASH.put("New files", new ArrayList<>());
+					if(HASH.get("NewFiles") == null){
+			        	HASH.put("NewFiles", new ArrayList<>());
 			        }
-			        HASH.get("New files").add(file);
+			        HASH.get("NewFiles").add(file);
 				}
 	        }
 	    }
