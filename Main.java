@@ -1,6 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -22,64 +20,83 @@ public class Main{
 	private static String NAME_CURRENT_DIR;
 	
 	public static void main(String[] args){
-		System.out.println("Start.\nClear logs.");
-		String def = Paths.get(System.getProperty("user.dir")).toString();
-		String path = def + "//FilesControl//" + DATE + "//";
-		File preFile = new File(path);
-		preFile.mkdirs();
-		for(File delete : preFile.listFiles()){
-			if(delete.isFile()){
-				delete.delete();
-			}
-		}
-		System.out.println("Get files.");
-		String pathFiles = def;
-		File currentDir = new File(pathFiles);
-		NAME_CURRENT_DIR = currentDir.getName();
-		System.out.println("Read files.");
-		getFiles(new File(pathFiles));
-		for(String key : HASH.keySet()){
-			Collections.sort(HASH.get(key), new Sort());
-			int count = 0;
-			double size = 0;
-			String text = "";
-			for(File file : HASH.get(key)){
-				count++;
-				NUMBER++;
-				if(NUMBER % (new Random().nextInt(200) + 1) == 0 || NUMBER == COUNT){
-					System.out.printf("%10d/%d\n", NUMBER, COUNT);
+		try{
+			System.out.println("Start.\nClear logs.");
+			String def = Paths.get(System.getProperty("user.dir")).toString();
+			String path = def + "//FilesControl//" + DATE + "//";
+			File preFile = new File(path);
+			preFile.mkdirs();
+			for(File delete : preFile.listFiles()){
+				if(delete.isFile()){
+					delete.delete();
 				}
-				size += file.length();
-				String newPath = file.getPath().substring(file.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
-				Double sizeFile = file.length() / 1048576d;
-				BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
-				sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
-				text += sizeFileBig + "МБ   " + newPath + "\n";
 			}
-			Double sizeFile = size / 1048576d;
-			BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
-			sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
-			Double sizeAllFile = size / count / 1048576d;
-			BigDecimal sizeAllFileBig = new BigDecimal(sizeAllFile.toString());
-			sizeAllFileBig = sizeAllFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
-			String filePath = preFile + "\\(" + key + ") (" + count + ") (" + sizeFileBig + "МБ) (" + sizeAllFileBig + "МБ)" + ".txt";
-			File file = new File(filePath);
-			try{
-				file.createNewFile();
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-			PrintWriter pw = null;
-			try{
-				pw = new PrintWriter(file.getAbsoluteFile());
-			}catch(FileNotFoundException e){
-				e.printStackTrace();
-			}
-			pw.print(text);
-		    pw.close();
-	    }
-		System.out.println("Finish.");
-		
+			System.out.println("Get files.");
+			String pathFiles = def;
+			File currentDir = new File(pathFiles);
+			NAME_CURRENT_DIR = currentDir.getName();
+			System.out.println("Read files.");
+			getFiles(new File(pathFiles));
+			System.out.println("\n");
+			for(String key : HASH.keySet()){
+				if(!key.equals("Weight") && !key.equals("Time")){
+					Collections.sort(HASH.get(key), new Sort());
+				}else{
+					if(key.equals("Weight")){
+						Collections.sort(HASH.get(key), new SortWeight());
+					}else Collections.sort(HASH.get(key), new SortTime());
+				}
+				int count = 0;
+				double size = 0;
+				String text = "";
+				for(File file : HASH.get(key)){
+					Double sizeFile = file.length() / 1048576d;
+					BasicFileAttributes attr = null;
+		        	try{
+		        		attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
+					}catch (Exception e){
+						e.printStackTrace();
+					}
+					Integer year = Integer.valueOf(new SimpleDateFormat("yyyy").format(attr.lastModifiedTime().toMillis()).toString());
+					String newPath = file.getPath().substring(file.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
+					if(!key.equals("Weight") && !key.equals("Time")){
+						NUMBER++;
+						if(NUMBER % (new Random().nextInt(200) + 1) == 0 || NUMBER == COUNT){
+							System.out.printf("%10d/%d\n", NUMBER, COUNT);
+						}
+					}
+					count++;
+					size += file.length();
+					BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
+					sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
+		        	String date = new SimpleDateFormat("dd.MM.yyyy").format(attr.lastModifiedTime().toMillis()).toString();
+					text += date + "   " + sizeFileBig + "МБ   " + newPath + "\n";
+					if(sizeFile >= 70d || year < 2015){
+						file.delete();
+					}
+				}
+				try{
+					Double sizeFile = size / 1048576d;
+					BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
+					sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
+					Double sizeAllFile = size / count / 1048576;
+					BigDecimal sizeAllFileBig = new BigDecimal(sizeAllFile.toString());
+					sizeAllFileBig = sizeAllFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
+					String filePath = preFile + "\\(" + key + ") (" + count + ") (" + sizeFileBig + "МБ) (" + sizeAllFileBig + "МБ)" + ".txt";
+					File file = new File(filePath);
+					file.createNewFile();
+					PrintWriter pw = null;
+					pw = new PrintWriter(file.getAbsoluteFile());
+					pw.print(text);
+				    pw.close();
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+		    }
+			System.out.println("Finish.");
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	static class Sort implements Comparator<File>{
@@ -88,6 +105,36 @@ public class Main{
         	String newPath_1 = arg_1.getPath().substring(arg_1.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
         	String newPath_0 = arg_0.getPath().substring(arg_0.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
         	return newPath_1.compareTo(newPath_0);
+        }
+	}
+	
+	static class SortWeight implements Comparator<File>{
+        @Override
+        public int compare(File arg_0, File arg_1){
+        	Long file_1 = arg_1.length();
+        	Long file_0 = arg_0.length();
+        	return file_1.compareTo(file_0);
+        }
+	}
+	
+	static class SortTime implements Comparator<File>{
+        @Override
+        public int compare(File arg_0, File arg_1){
+        	BasicFileAttributes attr_1 = null;
+        	try{
+        		attr_1 = Files.readAttributes(Paths.get(arg_1.getPath()), BasicFileAttributes.class);
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+        	Long file_1 = attr_1.lastModifiedTime().toMillis();
+        	BasicFileAttributes attr_0 = null;
+        	try{
+        		attr_0 = Files.readAttributes(Paths.get(arg_0.getPath()), BasicFileAttributes.class);
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+        	Long file_0 = attr_0.lastModifiedTime().toMillis();
+        	return file_1.compareTo(file_0);
         }
 	}
 	
@@ -109,7 +156,7 @@ public class Main{
 	        	BasicFileAttributes attr = null;
 	        	try{
 					attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
-				}catch (IOException e){
+				}catch (Exception e){
 					e.printStackTrace();
 				}
 		        String par_1 = getFormat(file.getPath());
@@ -124,6 +171,14 @@ public class Main{
 			        }
 			        HASH.get("NewFiles").add(file);
 				}
+		        if(HASH.get("Weight") == null){
+		        	HASH.put("Weight", new ArrayList<>());
+		        }
+		        HASH.get("Weight").add(file);
+		        if(HASH.get("Time") == null){
+		        	HASH.put("Time", new ArrayList<>());
+		        }
+		        HASH.get("Time").add(file);
 	        }
 	    }
 	}
