@@ -18,7 +18,6 @@ public class Main{
 	private static int COUNT = 0;
 	private static int NUMBER = 0;
 	private static String NAME_CURRENT_DIR;
-	
 	public static void main(String[] args){
 		try{
 			System.out.println("Start.\nClear logs.");
@@ -98,48 +97,58 @@ public class Main{
 			e.printStackTrace();
 		}
 	}
-	
 	static class Sort implements Comparator<File>{
-        @Override
+        @SuppressWarnings("null")
+		@Override
         public int compare(File arg_0, File arg_1){
-        	String newPath_1 = arg_1.getPath().substring(arg_1.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
-        	String newPath_0 = arg_0.getPath().substring(arg_0.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
-        	return newPath_1.compareTo(newPath_0);
+        	try{
+	        	String newPath_1 = arg_1.getPath().substring(arg_1.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
+	        	String newPath_0 = arg_0.getPath().substring(arg_0.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
+	        	return newPath_1.compareTo(newPath_0);
+        	}catch(Exception e){
+        		return (Integer) null;
+        	}
         }
 	}
-	
 	static class SortWeight implements Comparator<File>{
-        @Override
+        @SuppressWarnings("null")
+		@Override
         public int compare(File arg_0, File arg_1){
-        	Long file_1 = arg_1.length();
-        	Long file_0 = arg_0.length();
-        	return file_1.compareTo(file_0);
+        	try{
+	        	Long file_1 = arg_1.length();
+	        	Long file_0 = arg_0.length();
+	        	return file_1.compareTo(file_0);
+        	}catch(Exception e){
+        		return (Integer) null;
+        	}
         }
 	}
-	
 	static class SortTime implements Comparator<File>{
-        @Override
+        @SuppressWarnings("null")
+		@Override
         public int compare(File arg_0, File arg_1){
-        	BasicFileAttributes attr_1 = null;
         	try{
-        		attr_1 = Files.readAttributes(Paths.get(arg_1.getPath()), BasicFileAttributes.class);
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-        	Long file_1 = attr_1.lastModifiedTime().toMillis();
-        	BasicFileAttributes attr_0 = null;
-        	try{
-        		attr_0 = Files.readAttributes(Paths.get(arg_0.getPath()), BasicFileAttributes.class);
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-        	Long file_0 = attr_0.lastModifiedTime().toMillis();
-        	return file_1.compareTo(file_0);
+	        	BasicFileAttributes attr_1 = null;
+	        	try{
+	        		attr_1 = Files.readAttributes(Paths.get(arg_1.getPath()), BasicFileAttributes.class);
+				}catch (Exception e){
+					e.printStackTrace();
+				}
+	        	Long file_1 = attr_1.lastModifiedTime().toMillis();
+	        	BasicFileAttributes attr_0 = null;
+	        	try{
+	        		attr_0 = Files.readAttributes(Paths.get(arg_0.getPath()), BasicFileAttributes.class);
+				}catch (Exception e){
+					e.printStackTrace();
+				}
+	        	Long file_0 = attr_0.lastModifiedTime().toMillis();
+	        	return file_1.compareTo(file_0);
+        	}catch(Exception e){
+        		return (Integer) null;
+        	}
         }
 	}
-	
 	public static int COUNT_FILES = 0;
-	
 	public static void getFiles(File arg_0){
 	    File[] files = arg_0.listFiles();
 	    for (File file : files){
@@ -182,17 +191,20 @@ public class Main{
 	        }
 	    }
 	}
-	
 	public static String getFormat(String arg_0){
-		arg_0 = arg_0.toLowerCase();
-		if(arg_0.lastIndexOf('.') != -1){
-			String par_0 = arg_0.substring(arg_0.lastIndexOf('.') + 1);
-			if(par_0.lastIndexOf(Paths.get("\\").toString()) == -1){
-				return par_0;
+		try{
+			arg_0 = arg_0.toLowerCase();
+			if(arg_0.lastIndexOf('.') != -1){
+				String par_0 = arg_0.substring(arg_0.lastIndexOf('.') + 1);
+				if(par_0.lastIndexOf(Paths.get("\\").toString()) == -1){
+					return par_0;
+				}
+			}else{
+				return " ";
 			}
-		}else{
 			return " ";
-		}
-		return " ";
+		}catch(Exception e){
+    		return null;
+    	}
 	}
 }
