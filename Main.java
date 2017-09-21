@@ -13,21 +13,21 @@ import java.util.HashMap;
 import java.util.Random;
 
 public class Main{
-	private static HashMap<String, ArrayList<File>> HASH = new HashMap<String, ArrayList<File>>();
+	private static HashMap <String, ArrayList<File>> HASH = new HashMap <String, ArrayList<File>>();
 	private static String DATE = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 	private static int COUNT = 0;
 	private static int NUMBER = 0;
 	private static String NAME_CURRENT_DIR;
-	public static void main(String[] args){
-		try{
+	public static void main(String[] args) {
+		try {
 			System.out.println("Start.\nClear logs.");
 			String def = Paths.get(System.getProperty("user.dir")).toString();
 			String path = def + "//FilesControl//" + DATE + "//";
 			File preFile = new File(path);
 			preFile.mkdirs();
-			for(File delete : preFile.listFiles()){
-				if(delete.isFile()){
-					delete.delete();
+			for (File delete : preFile.listFiles()) {
+				if (delete.isFile()){
+					delete.delete(); 
 				}
 			}
 			System.out.println("Get files.");
@@ -37,30 +37,35 @@ public class Main{
 			System.out.println("Read files.");
 			getFiles(new File(pathFiles));
 			System.out.println("\n");
-			for(String key : HASH.keySet()){
-				if(!key.equals("Weight") && !key.equals("Time")){
+			for (String key : HASH.keySet()) {
+				if (!key.equals("Weight") && !key.equals("Time")) {
 					Collections.sort(HASH.get(key), new Sort());
-				}else{
-					if(key.equals("Weight")){
+				} else {
+					if (key.equals("Weight")) {
 						Collections.sort(HASH.get(key), new SortWeight());
-					}else Collections.sort(HASH.get(key), new SortTime());
+					} else Collections.sort(HASH.get(key), new SortTime());
 				}
 				int count = 0;
 				double size = 0;
 				String text = "";
-				for(File file : HASH.get(key)){
+				for (File file : HASH.get(key)) {
 					Double sizeFile = file.length() / 1048576d;
 					BasicFileAttributes attr = null;
-		        	try{
+		        	try {
 		        		attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
-					}catch (Exception e){
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					Integer year = Integer.valueOf(new SimpleDateFormat("yyyy").format(attr.lastModifiedTime().toMillis()).toString());
+					Integer year = 0;
+					try {
+						if (attr != null) year = Integer.valueOf(new SimpleDateFormat("yyyy").format(attr.lastModifiedTime().toMillis()).toString());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					String newPath = file.getPath().substring(file.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
-					if(!key.equals("Weight") && !key.equals("Time")){
+					if (!key.equals("Weight") && !key.equals("Time")) {
 						NUMBER++;
-						if(NUMBER % (new Random().nextInt(200) + 1) == 0 || NUMBER == COUNT){
+						if (NUMBER % (new Random().nextInt(200) + 1) == 0 || NUMBER == COUNT) {
 							System.out.printf("%10d/%d\n", NUMBER, COUNT);
 						}
 					}
@@ -68,13 +73,26 @@ public class Main{
 					size += file.length();
 					BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
 					sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
-		        	String date = new SimpleDateFormat("dd.MM.yyyy").format(attr.lastModifiedTime().toMillis()).toString();
-					text += date + "   " + sizeFileBig + "МБ   " + newPath + "\n";
-					if(sizeFile >= 70d || year < 2015){
+					if (attr != null) {
+						String date = new SimpleDateFormat("dd.MM.yyyy").format(attr.lastModifiedTime().toMillis()).toString();
+						text += date + "   " + sizeFileBig + "МБ   " + newPath + "\n";
+					}
+					if (sizeFile >= 70d || (year < 2015 & year != 0) || (getFormat(file.getPath()).equalsIgnoreCase("jpg") & sizeFile >= 3d)) {
 						file.delete();
 					}
+					ArrayList<String> delete_format = new ArrayList<>();
+					delete_format.add("mp3");
+					delete_format.add("mp4");
+					delete_format.add("");
+					delete_format.add("lnk");
+					delete_format.add("msi");
+					delete_format.add("exe");
+					delete_format.add("tmp");
+					for (String str : delete_format) {
+						if (getFormat(file.getPath()).equalsIgnoreCase(str)) file.delete();
+					}
 				}
-				try{
+				try {
 					Double sizeFile = size / 1048576d;
 					BigDecimal sizeFileBig = new BigDecimal(sizeFile.toString());
 					sizeFileBig = sizeFileBig.setScale(3, BigDecimal.ROUND_HALF_UP);
@@ -88,80 +106,88 @@ public class Main{
 					pw = new PrintWriter(file.getAbsoluteFile());
 					pw.print(text);
 				    pw.close();
-				}catch(Exception e){
+				} catch(Exception e) {
 					e.printStackTrace();
 				}
 		    }
 			System.out.println("Finish.");
-		}catch(Exception e){
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-	static class Sort implements Comparator<File>{
+	
+	static class Sort implements Comparator<File> {
         @SuppressWarnings("null")
 		@Override
-        public int compare(File arg_0, File arg_1){
-        	try{
+        public int compare(File arg_0, File arg_1) {
+        	try {
 	        	String newPath_1 = arg_1.getPath().substring(arg_1.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
 	        	String newPath_0 = arg_0.getPath().substring(arg_0.getPath().indexOf(NAME_CURRENT_DIR) + NAME_CURRENT_DIR.length() + 1);
 	        	return newPath_1.compareTo(newPath_0);
-        	}catch(Exception e){
+        	} catch(Exception e) {
         		return (Integer) null;
         	}
         }
 	}
-	static class SortWeight implements Comparator<File>{
+	
+	static class SortWeight implements Comparator<File> {
         @SuppressWarnings("null")
 		@Override
-        public int compare(File arg_0, File arg_1){
-        	try{
+        public int compare(File arg_0, File arg_1) {
+        	try {
 	        	Long file_1 = arg_1.length();
 	        	Long file_0 = arg_0.length();
 	        	return file_1.compareTo(file_0);
-        	}catch(Exception e){
+        	} catch(Exception e) {
         		return (Integer) null;
         	}
         }
 	}
-	static class SortTime implements Comparator<File>{
+	
+	static class SortTime implements Comparator<File> {
         @SuppressWarnings("null")
 		@Override
         public int compare(File arg_0, File arg_1){
-        	try{
+        	try {
 	        	BasicFileAttributes attr_1 = null;
-	        	try{
+	        	try {
 	        		attr_1 = Files.readAttributes(Paths.get(arg_1.getPath()), BasicFileAttributes.class);
-				}catch (Exception e){
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-	        	Long file_1 = attr_1.lastModifiedTime().toMillis();
 	        	BasicFileAttributes attr_0 = null;
-	        	try{
+	        	try {
 	        		attr_0 = Files.readAttributes(Paths.get(arg_0.getPath()), BasicFileAttributes.class);
-				}catch (Exception e){
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-	        	Long file_0 = attr_0.lastModifiedTime().toMillis();
-	        	return file_1.compareTo(file_0);
-        	}catch(Exception e){
+	        	
+	        	if(attr_1 != null || attr_0 != null) {
+		        	Long file_1 = attr_1.lastModifiedTime().toMillis();
+		        	Long file_0 = attr_0.lastModifiedTime().toMillis();
+		        	return file_1.compareTo(file_0);
+	        	} else return 0;
+        	} catch(Exception e) {
         		return (Integer) null;
         	}
         }
 	}
+	
 	public static int COUNT_FILES = 0;
-	public static void getFiles(File arg_0){
+	
+	public static void getFiles(File arg_0) {
 	    File[] files = arg_0.listFiles();
-	    for (File file : files){
-	        if(file.isDirectory()){
-	        	if(file.getPath().indexOf("FilesControl") == -1){
+	    for (File file : files) {
+	        if (file.isDirectory()) {
+	        	if (file.getPath().indexOf("FilesControl") == -1) {
 	        		getFiles(file);
 	        		continue;
 	        	}
 	        	continue;
 	        }
-	        if(file.getPath().toString().lastIndexOf("FilesControl") == -1){
+	        if (file.getPath().toString().lastIndexOf("FilesControl") == -1) {
 	        	COUNT_FILES ++;
-	        	if(COUNT_FILES % 100 == 0) System.out.print(".");
+	        	if(COUNT_FILES % 1000 == 0) System.out.print(".");
 	        	BasicFileAttributes attr = null;
 	        	try{
 					attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
